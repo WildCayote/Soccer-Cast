@@ -1,0 +1,6 @@
+outs:
+- md5: 4212ed6d87127bfca9fe986f61f2b9b1.dir
+  size: 40430499
+  nfiles: 4275
+  hash: md5
+  path: leagues
