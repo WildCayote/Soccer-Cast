@@ -11,6 +11,5 @@ python-dotenv>=0.5.1
 numpy
 chardet
 pandas
-sklearn
 mlflow
 scikit-learn
