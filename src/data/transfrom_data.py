@@ -78,7 +78,7 @@ class TranformData:
 
         return nominator / denominator
 
-    def poisson_dist(self, home_exp : float , away_exp : float , max_goals : float = 13):
+    def poisson_dist(self, home_exp :  float , away_exp : float , max_goals : float = 13):
         '''
         Accepts the home and away expected goals and then returns the poisson distribution for each team.
 
@@ -496,6 +496,4 @@ class TranformData:
 
 
 if __name__ == '__main__':
-    league_path = "C:\\Users\\dan\\Desktop\\Projects\\Predictor\\scraped_data\\leagues_old\\18"
-    preprocessor = TranformData(league_path)
-    preped_data = preprocessor.transform()
+    ...
