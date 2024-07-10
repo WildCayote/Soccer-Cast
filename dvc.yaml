@@ -1,0 +1,8 @@
+stages:
+  compile_league_seasons:
+    cmd: python ./src/data/transfrom_data.py
+    deps:
+      - ./data/external/leagues
+      - ./src/data/transfrom_data.py
+    outs:
+      - ./data/interim/compiled

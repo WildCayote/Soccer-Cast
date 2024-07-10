@@ -1,8 +1,20 @@
 import pandas as pd
 import numpy as np
-import os , math 
+import os , math, argparse ,chardet
 
-from src.utils.reading import read_data
+# ignore warnings
+import warnings
+warnings.simplefilter('ignore')
+
+def read_data(data_path : str):
+        # Detect encoding   
+        with open(data_path, 'rb') as f:
+            result = chardet.detect(f.read())
+
+        # Read file with detected encoding
+        df = pd.read_csv(data_path, encoding=result['encoding'])
+
+        return df
 
 
 class TranformData:
@@ -494,6 +506,31 @@ class TranformData:
         return self.data
 
 
-
 if __name__ == '__main__':
-    ...
+    args = argparse.ArgumentParser()
+    args.add_argument("--leagues_folder" , default='./data/external/leagues')
+    args.add_argument("--export_path" , default='./data/interim/compiled')
+
+    parsed_args = args.parse_args()
+
+    # create the output folder
+    os.mkdir(parsed_args.export_path)
+
+    leagues = os.listdir(parsed_args.leagues_folder)
+    error_leagues = []
+
+    for league in leagues:
+        league_path = os.path.join(parsed_args.leagues_folder , league)
+        compiled_path = os.path.join(parsed_args.export_path , f'{league}_compiled.csv')
+
+        try:
+            # preparer
+            prep_pipe = TranformData(folder_path=league_path)
+            league_compiled  = prep_pipe.transform()
+
+        except Exception as e:
+            error_leagues.append(league)
+            continue
+
+        # save the compiled data
+        league_compiled.to_csv(compiled_path , index=False)

@@ -1,0 +1,20 @@
+schema: '2.0'
+stages:
+  compile_league_seasons:
+    cmd: python ./src/data/transfrom_data.py
+    deps:
+    - path: ./data/external/leagues
+      hash: md5
+      md5: 4212ed6d87127bfca9fe986f61f2b9b1.dir
+      size: 40430499
+      nfiles: 4275
+    - path: ./src/data/transfrom_data.py
+      hash: md5
+      md5: 5041bd90faf512c961d1fd660be9239b
+      size: 27354
+    outs:
+    - path: ./data/interim/compiled
+      hash: md5
+      md5: 4739f34caf4d876ea5d652ce10deb2de.dir
+      size: 367810009
+      nfiles: 853
