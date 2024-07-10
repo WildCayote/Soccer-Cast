@@ -13,3 +13,4 @@ chardet
 pandas
 mlflow
 scikit-learn
+dvc_gdrive

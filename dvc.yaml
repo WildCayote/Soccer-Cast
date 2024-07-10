@@ -2,7 +2,14 @@ stages:
   compile_league_seasons:
     cmd: python ./src/data/transfrom_data.py
     deps:
-      - ./data/external/leagues
-      - ./src/data/transfrom_data.py
+    - ./data/external/leagues
+    - ./src/data/transfrom_data.py
     outs:
-      - ./data/interim/compiled
+    - ./data/interim/compiled
+  compile_all:
+    cmd: python ./src/data/compile_data.py
+    deps:
+    - ./data/interim/compiled
+    - ./src/data/compile_data.py
+    outs:
+    - ./data/processed/final.csv
