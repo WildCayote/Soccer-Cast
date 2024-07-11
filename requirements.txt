@@ -9,6 +9,7 @@ chardet
 pandas
 mlflow
 scikit-learn
+dvc
 dvc_gdrive
 pickle
 joblib
