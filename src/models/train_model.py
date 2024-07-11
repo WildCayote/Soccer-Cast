@@ -1,5 +1,5 @@
 import pandas as pd
-import chardet , os
+import chardet , os , argparse , json , pickle , joblib
 from typing import List
 
 from sklearn.metrics import accuracy_score
@@ -13,6 +13,13 @@ from sklearn.linear_model import PassiveAggressiveClassifier
 import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature , set_signature
+from mlflow.tracking import MlflowClient
+
+
+# ignore warnings
+import warnings
+warnings.simplefilter('ignore')
+
 
 class ModelManager:
     '''
@@ -56,6 +63,8 @@ class ModelManager:
         # list for holding skipped leagues
         self.skipped = set()
 
+        # variable for holding experiment name
+        self.experiment_name = None
 
     def read_data(self , data_path : str):
         
@@ -84,6 +93,7 @@ class ModelManager:
             - experiment_id : str , the id of the created experiment
         '''
 
+        self.experiment_name = experiment_name
         try:
             experiment_id = mlflow.create_experiment(experiment_name)
         except mlflow.exceptions.MlflowException:
@@ -411,6 +421,9 @@ class ModelManager:
                     target_col=target_name
                 )
 
+                # find the best model and log it
+                self.log_best_model(target=target_name)
+
             else:
 
                 print(f'Skipped league {league_id} becuase it has low games')
@@ -520,7 +533,9 @@ class ModelManager:
                     experiment_id=experiment_id,
                     run_name=run_name,
                     target_name=target 
-                )
+                )   
+
+                print(f'--- Trained for {target} ---')
             
         print('---Training Ended---')
 
@@ -545,6 +560,7 @@ class ModelManager:
                 run_name=run_name,
                 target_name=self.target_col
             )
+            self.log_best_model(target=self.target_col)
         else:
             # train on multiple targets
             for target in self.target_list:
@@ -555,15 +571,74 @@ class ModelManager:
                     run_name=run_name,
                     target_name=target 
                 )
+                self.log_best_model(target=target)
+                print(f'--- Training on {target} finished ---')
 
         print('---Training Ended---')
 
-    def find_best_model(self):
-        ...
+    def log_best_model(self , target : str):
+        # find the best model
+        run_name = f'compiled_{target}_%'
+        runs = mlflow.search_runs(experiment_names=[self.experiment_name] , filter_string=f'''attributes.run_name LIKE "{run_name}" AND attributes.status = "FINISHED"''' , order_by=["metrics.accuracy_score DESC"])        
+        best_run = runs.head(n=1)
 
-    def export_model(self):
-        ...
+        # get the artifacts uri
+        artifact_uri = best_run["artifact_uri"][0]
+
+        # relative path
+        uri_folder_name = self.tracking_uri
+        relative_path = artifact_uri.split(uri_folder_name)[1]
+        relative_folder_path = f"./{uri_folder_name}{relative_path}/models"
+
+        # model name
+        name = os.listdir(relative_folder_path)[0]
+        complete_model_folder_path = os.path.join(relative_folder_path , name)
+        target = os.listdir(complete_model_folder_path)[0]
+        model_path = os.path.join(complete_model_folder_path , target , 'model.pkl')
+
+        # copy the model
+        with open(model_path , 'rb') as model_pkl:
+            loaded_model = pickle.load(model_pkl)
         
+        if 'objects' not in os.listdir('./models/'):
+            os.mkdir('./models/objects')
+        joblib.dump(loaded_model , filename=f'./models/objects/{target}.joblib' , compress=3)
+
+        # get model type
+        run_name = best_run['tags.mlflow.runName'][0]   
+        model_type = run_name.split('_')[-1]
+
+
+        # save the metric and params
+        metrics = dict()
+        params = dict()
+
+        for column in best_run.columns:
+            if 'metrics' in column:
+                metric_name = column.split('.')[1]
+                metric_value = best_run[column][0]
+                if not pd.isna(metric_value):
+                    metrics[metric_name] = metric_value
+            elif 'param' in column:
+                param_name = column.split('.')[1]
+                param_value = best_run[column][0]
+                if not pd.isna(param_value):
+                    params[param_name] = param_value
+
+
+        # add the models performance
+        path_to_metrics = './models/metrics.json'
+        try:
+            # try opening an existing file
+            with open(path_to_metrics , 'w+') as file:
+                model_performance = json.load(file)
+                model_performance[target] = {"metrics" : metrics , "params" : params , "model_type" : model_type}
+                json.dump(model_performance , file , indent=4) 
+        except Exception as e:
+            with open(path_to_metrics , 'w') as file:
+                model_performance = {target : {"metrics" : metrics , "params" : params , "model_type" : model_type}} 
+                json.dump(model_performance , file , indent=4)        
+ 
     def fit(self , experiment_name : str = None):
         # set the local tracking folder
         self.set_tracking()
@@ -586,4 +661,41 @@ class ModelManager:
 
 
 if __name__ == "__main__":
-    ...
+    args = argparse.ArgumentParser()
+    args.add_argument('--data_path' , default='./data/processed/final.csv')
+    args.add_argument('--mlflow_tracking_uri' , default='mlruns')
+    args.add_argument('--experiment_name' , default='main experiment')
+
+    parsed_args = args.parse_args()
+
+    data_path = parsed_args.data_path
+    tracking_uri = parsed_args.mlflow_tracking_uri
+    experiment_name = parsed_args.experiment_name
+
+    # a set for holding improper leagues , i.e leagues with to little data
+    bad_leagues = set()
+
+    target_params = ['home_win' , 'draw' , 'away_win' , 'home_double' , 'away_double']
+    features = ['home_attack_strength', 'home_defence_strength', 'away_attack_strength',
+           'away_defence_strength', 'home_expected_goal', 'away_expected_goal']
+
+    # create the mlflow directory / if it doesn't exist
+    all_folders = os.listdir(os.getcwd())
+    if tracking_uri not in all_folders:
+        os.mkdir(tracking_uri)
+    
+    # instantiate the model managet for training
+    trainer = ModelManager(
+            data_folder= data_path, 
+            tracking_uri=tracking_uri, 
+            target_list=target_params,
+            predictors=features,
+            one_target=False,
+            train_from_compiled=True,
+            test_size=0.3,
+            save_models=True,
+            models_root_path='./saved_models'
+            )
+
+    # invoke the fit method to start the training
+    trainer.fit(experiment_name=experiment_name)

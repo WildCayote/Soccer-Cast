@@ -2,14 +2,24 @@ stages:
   compile_league_seasons:
     cmd: python ./src/data/transfrom_data.py
     deps:
-    - ./data/external/leagues
-    - ./src/data/transfrom_data.py
+      - ./data/external/leagues
+      - ./src/data/transfrom_data.py
     outs:
-    - ./data/interim/compiled
+      - ./data/interim/compiled
   compile_all:
     cmd: python ./src/data/compile_data.py
     deps:
-    - ./data/interim/compiled
-    - ./src/data/compile_data.py
+      - ./data/interim/compiled
+      - ./src/data/compile_data.py
     outs:
-    - ./data/processed/final.csv
+      - ./data/processed/final.csv
+  train_and_select_models:
+    cmd: python ./src/models/train_model.py
+    deps:
+      - ./data/processed/final.csv
+      - ./src/models/train_model.py
+    outs:
+      - ./models/metrics.json
+      - ./models/objects
+metrics:
+  - ./models/metrics.json
