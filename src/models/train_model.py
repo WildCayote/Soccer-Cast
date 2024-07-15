@@ -630,10 +630,14 @@ class ModelManager:
         path_to_metrics = './models/metrics.json'
         try:
             # try opening an existing file
-            with open(path_to_metrics , 'w+') as file:
-                model_performance = json.load(file)
+            with open(path_to_metrics , 'r') as file:
+                model_performance = json.load(file) 
+            
+            # update it with the new metric
+            with open(path_to_metrics , 'w') as file:
                 model_performance[target] = {"metrics" : metrics , "params" : params , "model_type" : model_type}
-                json.dump(model_performance , file , indent=4) 
+                json.dump(model_performance , file , indent=4)
+
         except Exception as e:
             with open(path_to_metrics , 'w') as file:
                 model_performance = {target : {"metrics" : metrics , "params" : params , "model_type" : model_type}} 
