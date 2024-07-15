@@ -611,7 +611,6 @@ class ModelManager:
 
         # save the metric and params
         metrics = dict()
-        params = dict()
 
         for column in best_run.columns:
             if 'metrics' in column:
@@ -619,11 +618,7 @@ class ModelManager:
                 metric_value = best_run[column][0]
                 if not pd.isna(metric_value):
                     metrics[metric_name] = metric_value
-            elif 'param' in column:
-                param_name = column.split('.')[1]
-                param_value = best_run[column][0]
-                if not pd.isna(param_value):
-                    params[param_name] = param_value
+            
 
 
         # add the models performance
@@ -635,12 +630,12 @@ class ModelManager:
             
             # update it with the new metric
             with open(path_to_metrics , 'w') as file:
-                model_performance[target] = {"metrics" : metrics , "params" : params , "model_type" : model_type}
+                model_performance[target] = {"metrics" : metrics , "model_type" : model_type}
                 json.dump(model_performance , file , indent=4)
 
         except Exception as e:
             with open(path_to_metrics , 'w') as file:
-                model_performance = {target : {"metrics" : metrics , "params" : params , "model_type" : model_type}} 
+                model_performance = {target : {"metrics" : metrics , "model_type" : model_type}} 
                 json.dump(model_performance , file , indent=4)        
  
     def fit(self , experiment_name : str = None):
