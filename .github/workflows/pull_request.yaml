@@ -13,3 +13,15 @@ jobs:
       - name: install requirements
         run: |
           pip install -r requirements.txt
+      - name: run the experiment
+        run: |
+          dvc repro
+      - name: generate report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # generate report
+          git fetch --prune
+          dvc metrics diff --show-md master > report.md
+
+          cml-send-comment report.md
