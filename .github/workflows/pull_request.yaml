@@ -34,7 +34,7 @@ jobs:
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: now pull the data and run it
         run: |
-          dvc pull
+          # dvc pull
           dvc repro
       - name: generate report
         env:
