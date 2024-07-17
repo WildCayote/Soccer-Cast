@@ -23,8 +23,7 @@ jobs:
       - name: Set up Google Drive credentials
         run: |
           mkdir -p /home/runner/.config/dvc
-          mkdir -p /home/runner/.config/dvc
-          cat <<EOF > /home/runner/.config/dvc/gdrive-credentials.json ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }} EOF
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
       - name: add dvc drive credentials and run the experiment
