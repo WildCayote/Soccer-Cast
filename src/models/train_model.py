@@ -345,40 +345,40 @@ class ModelManager:
                     print("Model path not defined , model not saved!")
 
         # putting the classifier above into a list to train the ensemble classifiers
-        classifiers = [
-            ('Random Forrest' , random_forest_cls), 
-            # ('SVM' , svm_cls),
-            ('MLP' , mlp_cls),
-            ('Gradient Boosting' , gb_cls),
-            ('Passive Aggressive' , passive_aggressive_cls)
-            ]
+        # classifiers = [
+        #     ('Random Forrest' , random_forest_cls), 
+        #     # ('SVM' , svm_cls),
+        #     ('MLP' , mlp_cls),
+        #     ('Gradient Boosting' , gb_cls),
+        #     ('Passive Aggressive' , passive_aggressive_cls)
+        #     ]
 
-        # Votting Ensemble Classifier
-        with mlflow.start_run(run_name=f'{run_name}_votting'  , experiment_id=experiment_id):
-            # create and log model_parameters
-            model_params = {
-                'estimators' : classifiers
-            }
+        # # Votting Ensemble Classifier
+        # with mlflow.start_run(run_name=f'{run_name}_votting'  , experiment_id=experiment_id):
+        #     # create and log model_parameters
+        #     model_params = {
+        #         'estimators' : classifiers
+        #     }
 
-            mlflow.log_params(model_params)
+        #     mlflow.log_params(model_params)
 
-            # initialize and train the model
-            votting_ensemble = VotingClassifier(**model_params , verbose=0)
-            votting_ensemble.fit(train_x , train_y)
+        #     # initialize and train the model
+        #     votting_ensemble = VotingClassifier(**model_params , verbose=0)
+        #     votting_ensemble.fit(train_x , train_y)
 
-            # votting ensemble performance
-            votting_predictions = votting_ensemble.predict(test_x)
-            votting_performance = accuracy_score(test_y , votting_predictions)
+        #     # votting ensemble performance
+        #     votting_predictions = votting_ensemble.predict(test_x)
+        #     votting_performance = accuracy_score(test_y , votting_predictions)
 
-            # log performance
-            mlflow.log_metrics({'accuracy_score' : votting_performance})
+        #     # log performance
+        #     mlflow.log_metrics({'accuracy_score' : votting_performance})
             
-            # log the model artifact if save model is enabled
-            if self.save_models:
-                if self.models_root_path != None:
-                    mlflow.sklearn.log_model(votting_ensemble , f'models/VottingEnsembelModels/{target_col}')
-                else:
-                    print("Model path not defined , model not saved!")
+        #     # log the model artifact if save model is enabled
+        #     if self.save_models:
+        #         if self.models_root_path != None:
+        #             mlflow.sklearn.log_model(votting_ensemble , f'models/VottingEnsembelModels/{target_col}')
+        #         else:
+        #             print("Model path not defined , model not saved!")
 
     def pipe(self , data : pd.DataFrame , experiment_id : str , run_name : str , league_id : str = None , target_name : str = None):
         '''
