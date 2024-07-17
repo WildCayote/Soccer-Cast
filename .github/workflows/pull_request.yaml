@@ -29,7 +29,11 @@ jobs:
       - name: add dvc drive credentials and run the experiment
         run: |
           dvc remote modify drive gdrive_use_service_account true
+      - name: break down the place to set the json
+        run: |
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
+      - name: now pull the data and run it
+        run: |
           dvc pull
           dvc repro
       - name: generate report
