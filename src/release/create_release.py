@@ -34,7 +34,7 @@ def create_release(models_path : str):
     print('-- Models copied to package --')
 
     # then convert the ml_pacakge into a zip file
-    if os.path.exists(ZIP_NAME) : os.remove(ZIP_NAME)
+    if os.path.exists(ZIP_NAME + '.zip') : os.remove(ZIP_NAME + '.zip')
 
     shutil.make_archive(ZIP_NAME , 'zip' , PACKAGE_DIRECTORY)
 
