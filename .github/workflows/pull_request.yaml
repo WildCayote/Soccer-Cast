@@ -20,12 +20,10 @@ jobs:
           pip install dvc[all]  # Ensure all DVC dependencies are installed
           pip install --upgrade cryptography  # Update cryptography library
           pip install -r requirements.txt
-      - name: add dvc drive credentials
+      - name: add dvc drive credentials and run the experiment
         run: |
           dvc remote modify drive gdrive_client_id "${{ secrets.DRIVE_CLIENT_ID }}"
           dvc remote modify drive gdrive_client_secret "{{ secrets.DRIVE_CLIENT_SECRET }}"
-      - name: run the experiment
-        run: |
           dvc pull
           dvc repro
       - name: generate report
