@@ -19,7 +19,6 @@ stages:
       - ./data/processed/final.csv
       - ./src/models/train_model.py
     outs:
-      - ./models/metrics.json
       - ./models/objects
 metrics:
   - ./models/metrics.json

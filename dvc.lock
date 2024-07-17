@@ -47,10 +47,6 @@ stages:
       md5: d56c89ea446291a0a2b871c938283ec8
       size: 27863
     outs:
-    - path: ./models/metrics.json
-      hash: md5
-      md5: f329ded42c6c5b588ca7cc70519ee615
-      size: 318
     - path: ./models/objects
       hash: md5
       md5: 408d423bbfd5f63c8aa2395a5a894a55.dir
