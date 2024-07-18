@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: iterative/setup-cml@v1
+      - uses: joelwmale/retry@v1
       - name: Set up python
         uses: actions/setup-python@v2
         with:
@@ -32,9 +33,13 @@ jobs:
       - name: break down the place to set the json
         run: |
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
-      - name: now pull the data and run it
+      - name: now pull the data
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: dvc pull -v
+      - name: reproduce the pipeline
         run: |
-          dvc pull -v
           dvc repro
       - name: generate report
         env:
