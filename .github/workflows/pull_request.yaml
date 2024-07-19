@@ -38,20 +38,11 @@ jobs:
           $attempt=0
           $success=$false
 
-          while($attempt -lt $retries -and -not $success){
-            try{
-              $attempt++
+          while($attempt -lt $retries){
+            
+            $attempt++
 
-              dvc pull -v
-
-              $success=$true
-
-              Write-Output "dvc pull succeeded on attempt $attempt"
-            }
-            catch{
-              Write-Output "dvc pull failed on attempt $attempt"
-              Start-Sleep -Seconds 3
-            }
+            dvc pull -v
           }
 
           if(-not $success){
