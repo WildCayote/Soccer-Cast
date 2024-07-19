@@ -36,7 +36,7 @@ jobs:
         run: |
           $retries=3
           $attempt=0
-          $success=\$false
+          $success=$false
 
           while($attempt -lt $retries -and -not $success){
             try{
