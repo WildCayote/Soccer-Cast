@@ -32,36 +32,9 @@ jobs:
       - name: break down the place to set the json
         run: |
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
-      - name: now pull the data, run it 3 times on failure
-        run: |
-          $retries=3
-          $attempt=0
-          $success=\$false
-
-          while($attempt -lt $retries -and -not $success){
-            try{
-              $attempt++
-
-              dvc pull -v
-
-              $success=$true
-
-              Write-Output "dvc pull succeeded on attempt $attempt"
-            }
-            catch{
-              Write-Output "dvc pull failed on attempt $attempt"
-              Start-Sleep -Seconds 3
-            }
-          }
-          
-          if(-not $success){
-            Write-Output "dvc pull fialed after $retries attempts"
-            exit 1
-          }else{
-            exit 0
-          }
-
-      - name: run the pipeline
+      - name: now pull the data
+        run: dvc pull -v
+      - name: reproduce the pipeline
         run: |
           dvc repro
       - name: generate report
