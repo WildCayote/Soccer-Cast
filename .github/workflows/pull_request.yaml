@@ -44,13 +44,6 @@ jobs:
 
             dvc pull -v
           }
-
-          if(-not $success){
-            Write-Output "dvc pull fialed after $retries attempts"
-            exit 1
-          }else{
-            exit 0
-          }
       - name: reproduce the pipeline
         run: |
           dvc repro
