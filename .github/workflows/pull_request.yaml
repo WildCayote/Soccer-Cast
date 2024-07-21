@@ -6,22 +6,50 @@ on:
 
 jobs:
   run:
-    runs-on: [ubuntu-latest]
+    runs-on: [windows-latest]
     steps:
       - uses: actions/checkout@v3
       - uses: iterative/setup-cml@v1
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
       - name: install requirements
         run: |
+          python -m pip install --upgrade pip
+          pip install dvc[all]  # Ensure all DVC dependencies are installed
+          pip install --upgrade cryptography  # Update cryptography library
           pip install -r requirements.txt
-      - name: run the experiment
+      - name: Set up Google Drive credentials
         run: |
-          dvc repro
+          mkdir -p /home/runner/.config/dvc
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+      - name: add dvc drive credentials and run the experiment
+        run: |
+          dvc remote modify drive gdrive_use_service_account true
+      - name: break down the place to set the json
+        run: |
+          dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
+      - name: now pull the data, run it 3 times on failure
+        run: |
+          $retries=4
+          $attempt=0
+          $success=$false
+
+          while($attempt -lt $retries){
+            
+            $attempt++
+
+            dvc pull -v
+          }
       - name: generate report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # generate report
           git fetch --prune
-          dvc metrics diff --show-md master > report.md
+          dvc metrics diff --md --no-path --all main > report.md
 
           cml-send-comment report.md
