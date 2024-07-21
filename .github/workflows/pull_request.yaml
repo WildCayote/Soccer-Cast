@@ -34,7 +34,7 @@ jobs:
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: now pull the data, run it 3 times on failure
         run: |
-          $retries=3
+          $retries=4
           $attempt=0
           $success=$false
 
@@ -44,15 +44,12 @@ jobs:
 
             dvc pull -v
           }
-      - name: reproduce the pipeline
-        run: |
-          dvc repro
       - name: generate report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # generate report
           git fetch --prune
-          dvc metrics diff --show-md master > report.md
+          dvc metrics diff --md --no-path --all main > report.md
 
           cml-send-comment report.md
