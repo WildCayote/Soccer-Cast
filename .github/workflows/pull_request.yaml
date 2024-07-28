@@ -39,5 +39,5 @@ jobs:
           # generate report
           git fetch --prune
           dvc metrics diff --md --no-path --all main > report.md
-
-          cml comment create report.md
+      - name: add comment to pull reqest
+        run: cml comment create report.md
