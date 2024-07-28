@@ -40,4 +40,6 @@ jobs:
           git fetch --prune
           dvc metrics diff --md --no-path --all main > report.md
       - name: add comment to pull reqest
+        env:
+          REPO_TOKEN: ${{ vars.REPO_TOKEN }}
         run: cml comment create report.md
