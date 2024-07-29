@@ -1,0 +1,36 @@
+name: create_release
+on:
+  pull-request:
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: ${{ github.event.pull_request.merged }} == true
+  run:
+    runs-on: [windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: iterative/setup-cml@v1
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install dvc[all]  # Ensure all DVC dependencies are installed
+          pip install --upgrade cryptography  # Update cryptography library
+          pip install -r requirements.txt
+      - name: Set up Google Drive credentials
+        run: |
+          mkdir -p /home/runner/.config/dvc
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+      - name: modify dvc to use drive service account
+        run: |
+          dvc remote modify drive gdrive_use_service_account true
+      - name: add the service account json file to the dvc remote config
+        run: |
+          dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
