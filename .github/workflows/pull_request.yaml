@@ -26,10 +26,10 @@ jobs:
           echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
-      - name: add dvc drive credentials and run the experiment
+      - name: modify dvc to use drive service account
         run: |
           dvc remote modify drive gdrive_use_service_account true
-      - name: break down the place to set the json
+      - name: add the service account json file to the dvc remote config
         run: |
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: generate report
@@ -39,7 +39,7 @@ jobs:
           # generate report
           git fetch --prune
           dvc metrics diff --md --no-path --all main > report.md
-      - name: add comment to pull reqest
+      - name: add the report as comment to the pull reqest
         env:
           REPO_TOKEN: ${{ vars.REPO_TOKEN }}
         run: cml comment create report.md
