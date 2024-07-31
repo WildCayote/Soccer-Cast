@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    if: ${{ github.event.pull_request.merged }} == true
+    if: github.event.pull_request.merged == true
   run:
     runs-on: [windows-latest]
     steps:
