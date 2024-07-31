@@ -34,3 +34,16 @@ jobs:
       - name: add the service account json file to the dvc remote config
         run: |
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
+      - name: pull data/models from remote dvc store
+        run: |
+          $retries = 4
+          $attempts = 0
+
+          while($attempts -lt retries){
+            dvc pull -v
+
+            $attempts++
+          }
+      - name: create a release by running the python code
+        run: |
+          python src/release/create_release.py
