@@ -1,6 +1,6 @@
 name: create_release
 on:
-  pull-request:
+  pull_request:
     types: [closed]
   workflow_dispatch:
 
