@@ -1,6 +1,7 @@
 name: create_release
 on:
   release:
+    types: [publish]
   workflow_dispatch:
 
 jobs:
@@ -15,21 +16,21 @@ jobs:
       - name: install requirements
         run: |
           python -m pip install --upgrade pip
-          # pip install dvc[all]  # Ensure all DVC dependencies are installed
+          pip install dvc[all]  # Ensure all DVC dependencies are installed
           pip install --upgrade cryptography  # Update cryptography library
           pip install -r requirements.txt
       - name: Set up Google Drive credentials
         run: |
-          # mkdir -p /home/runner/.config/dvc
-          # echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
+          mkdir -p /home/runner/.config/dvc
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
       - name: modify dvc to use drive service account
         run: |
-          # dvc remote modify drive gdrive_use_service_account true
+          dvc remote modify drive gdrive_use_service_account true
       - name: add the service account json file to the dvc remote config
         run: |
-          # dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
+          dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: pull data/models from remote dvc store
         run: |
           # $retries = 4
