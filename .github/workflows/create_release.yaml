@@ -1,17 +1,13 @@
 name: create_release
 on:
-  pull_request:
-    types: [closed]
+  release:
   workflow_dispatch:
 
 jobs:
-  build:
-    if: github.event.pull_request.merged == true
-  run:
-    runs-on: [windows-latest]
+  upload_release:
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v3
-      - uses: iterative/setup-cml@v1
       - name: Set up python
         uses: actions/setup-python@v2
         with:
@@ -19,31 +15,41 @@ jobs:
       - name: install requirements
         run: |
           python -m pip install --upgrade pip
-          pip install dvc[all]  # Ensure all DVC dependencies are installed
+          # pip install dvc[all]  # Ensure all DVC dependencies are installed
           pip install --upgrade cryptography  # Update cryptography library
           pip install -r requirements.txt
       - name: Set up Google Drive credentials
         run: |
-          mkdir -p /home/runner/.config/dvc
-          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
+          # mkdir -p /home/runner/.config/dvc
+          # echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}' > /home/runner/.config/dvc/gdrive-credentials.json
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
       - name: modify dvc to use drive service account
         run: |
-          dvc remote modify drive gdrive_use_service_account true
+          # dvc remote modify drive gdrive_use_service_account true
       - name: add the service account json file to the dvc remote config
         run: |
-          dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
+          # dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: pull data/models from remote dvc store
         run: |
-          $retries = 4
-          $attempts = 0
+          # $retries = 4
+          # $attempts = 0
 
-          while($attempts -lt retries){
-            dvc pull -v
+          # while($attempts -lt retries){
+          #   dvc pull -v
 
-            $attempts++
-          }
-      - name: create a release by running the python code
+          #   $attempts++
+          # }
+      - name: create the package to be uploaded by running the python code
         run: |
-          python src/release/create_release.py
+          python src/release/create_release.py --test true
+      - name: upload the package to the git hub artifact store for that release
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: src/release/ml_package.zip
+          asset_name: ml_package.zip
+          asset_content_type: application/zip
