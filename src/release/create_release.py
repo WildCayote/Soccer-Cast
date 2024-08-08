@@ -43,10 +43,18 @@ def create_release(models_path : str):
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument('--models_folder' , default='./models/objects')
+    args.add_argument('--test' , default='false')
 
     parsed_args = args.parse_args()
 
     models_folder = parsed_args.models_folder
+    test_run = parsed_args.test
 
-    create_release(models_path=models_folder)
-
+    if test_run == 'true':
+        # create a package without the models copied inside it
+        shutil.make_archive(ZIP_NAME , 'zip' , PACKAGE_DIRECTORY)
+    elif test_run == 'false':
+        # create a package with the models copied inside it
+        create_release(models_path=models_folder)
+    else:
+        print('Please set the --test argument to either false or true!')
