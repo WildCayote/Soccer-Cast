@@ -14,7 +14,7 @@ def create_release(models_path : str):
     '''
     
     # first clean the packages model directory
-    if os.path.exists(path=MODELS_PATH) :
+    if os.path.exists(MODELS_PATH) :
         shutil.rmtree(MODELS_PATH)
     
     # create a models path
