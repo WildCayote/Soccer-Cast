@@ -33,17 +33,17 @@ jobs:
           dvc remote modify drive gdrive_service_account_json_file_path /home/runner/.config/dvc/gdrive-credentials.json
       - name: pull data/models from remote dvc store
         run: |
-          # $retries = 4
-          # $attempts = 0
+          $retries = 4
+          $attempts = 0
 
-          # while($attempts -lt retries){
-          #   dvc pull -v
+          while($attempts -lt retries){
+            dvc pull -v
 
-          #   $attempts++
-          # }
+            $attempts++
+          }
       - name: Create the package to be uploaded by running the Python code
         run: |
-          python src/release/create_release.py --test true
+          python src/release/create_release.py
       - name: Get the release
         id: get_release
         uses: bruceadams/get-release@v1.3.2
