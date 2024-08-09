@@ -1,14 +1,12 @@
 name: create_release
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  upload_release:
+  build_release:
     runs-on: [ubuntu-latest]
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up python
@@ -43,7 +41,10 @@ jobs:
 
           #   $attempts++
           # }
-      - name: Create the release
+      - name: Create the package to be uploaded by running the Python code
+        run: |
+          python src/release/create_release.py --test true
+       - name: Create the release
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -52,11 +53,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: "Automated release based on ${{ github.ref }}"
-          draft: false
-          prerelease: false
-      - name: Create the package to be uploaded by running the Python code
-        run: |
-          python src/release/create_release.py --test true
       - name: Upload the package to the GitHub artifact store for that release
         uses: actions/upload-release-asset@v1
         env:
@@ -64,5 +60,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: src/release/ml_package.zip
-          asset_name: ml_package.zip
+          asset_name: ml_package-v${{ github.run_number }}.zip
           asset_content_type: application/zip
