@@ -36,7 +36,7 @@ jobs:
           $retries = 4
           $attempts = 0
 
-          while($attempts -lt retries){
+          while($attempts -lt $retries){
             dvc pull -v
 
             $attempts++
