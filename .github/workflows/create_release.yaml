@@ -50,9 +50,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ vars.REPO_TOKEN }}
         with:
-          tag_name: Release ${{ github.run_number }}
+          tag_name: V${{github.run_number}}
           release_name: ML Package - Release ${{ github.run_number }}
-          body: "Automated release based on ${{ github.ref }}"
+          body: ""
       - name: Upload the package to the GitHub artifact store for that release
         uses: actions/upload-release-asset@v1
         env:
