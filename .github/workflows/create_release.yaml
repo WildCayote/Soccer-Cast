@@ -6,7 +6,7 @@ on:
 
 jobs:
   build_release:
-    runs-on: [ubuntu-latest]
+    runs-on: [windows-latest]
     steps:
       - uses: actions/checkout@v3
       - name: Set up python
@@ -44,7 +44,7 @@ jobs:
       - name: Create the package to be uploaded by running the Python code
         run: |
           python src/release/create_release.py --test true
-       - name: Create the release
+      - name: Create the release
         id: create_release
         uses: actions/create-release@v1
         env:
