@@ -2,18 +2,16 @@ import pandas as pd
 import chardet , os , argparse , json , pickle , joblib
 from typing import List
 
+import numpy as np
+
+
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-from sklearn.ensemble import RandomForestClassifier , GradientBoostingClassifier , VotingClassifier , StackingClassifier
-from sklearn.svm import SVC
-from sklearn.neural_network import MLPClassifier
-from sklearn.linear_model import PassiveAggressiveClassifier
+import tensorflow as tf
 
 import mlflow
-import mlflow.sklearn
-from mlflow.models.signature import infer_signature , set_signature
-from mlflow.tracking import MlflowClient
+from mlflow.tensorflow import MLflowCallback
 
 
 # ignore warnings
@@ -174,7 +172,7 @@ class ModelManager:
                 y = df[target_col]
                 
                 print(f'Splitting data done.')
-                return train_test_split(X , y , test_size=0.1 , random_state=100)
+                return train_test_split(X , y , test_size=0.2 , random_state=100)
 
             else:
                 predictor_cols.remove(target_col)
@@ -201,14 +199,10 @@ class ModelManager:
                      target_col: str = None,
                     ):
         '''
-        Trains , evaluates and logs the following models:
-            - Random Forest Classifier
-            - SVM Classifier (It takes time to train so currently commented out)
-            - MLP Classifier
-            - GDBoosting Classifier
-            - Passive Aggressive Classifier
-            - Votting Ensemble
-            - Stacking Ensemble (with SVM as its final_estimator)
+        Trains , evaluates and logs an Artificial Neurla Network with the following structure:
+            - 4 hidden layers : 128 , 128 , 64 , 32 neurons each.
+            - ReLU activation function for the hidden layers
+            - Softmax activation function for the output layer
         
         Args:
             - train_x : pd.Dataframe , the dataframe with the training predictors
@@ -222,161 +216,64 @@ class ModelManager:
             - None
         '''
         
-        # get the signature of models
-
-
-
-        # RandomForest Classifier 
-        with mlflow.start_run(run_name=f'{run_name}_randomForest' , experiment_id=experiment_id) as run:
-        
-            # create and log the params
-            model_params = {'n_estimators' : 200 , 'random_state' : 42}
-            mlflow.log_params(model_params)
-
-            # initialize and train the model
-            random_forest_cls = RandomForestClassifier(**model_params)
-            random_forest_cls.fit(train_x , train_y)
-
-            # prediction using random_forest
-            random_forest_predictions = random_forest_cls.predict(test_x)
-            random_forest_performance = accuracy_score(test_y , random_forest_predictions)
-
-            # log the performance
-            mlflow.log_metrics({'accuracy_score' : random_forest_performance})
-
-            # log the model artifact if save model is enabled
-            if self.save_models:
-                if self.models_root_path != None:
-                    mlflow.sklearn.log_model(random_forest_cls , f'models/randomForestModels/{target_col}')
-                else:
-                    print("Model path not defined , model not saved!")
-
-        # MLP Classifier
-        with mlflow.start_run(run_name=f'{run_name}_mlp' , experiment_id=experiment_id) as run:
-    
-            # create and log model parameters
-            model_params = {'hidden_layer_sizes' : (40,),
-                            'max_iter' : 100,
-                            'alpha' : 1e-4,
-                            'solver' : 'adam',
-                            'random_state' : 1,
-                            'learning_rate_init' : 0.2,
-                            'learning_rate' : 'adaptive',
-                            'early_stopping' : True}
-
-            mlflow.log_params(model_params)
-
-            # initialize and train the model
-            mlp_cls = MLPClassifier(**model_params)
-            mlp_cls.fit(train_x , train_y)
-
-            # predictions using MLP 
-            mlp_predictions = mlp_cls.predict(test_x)
-            mlp_performance = accuracy_score(test_y , mlp_predictions)
-
-            # log performance
-            mlflow.log_metrics({'accuracy_score' : mlp_performance})
-
-            # log the model artifact if save model is enabled
-            if self.save_models:
-                if self.models_root_path != None:
-                    mlflow.sklearn.log_model(mlp_cls , f'models/MLPModels/{target_col}')
-                else:
-                    print("Model path not defined , model not saved!")
-
-        # GDBoosting Classifier
-        with mlflow.start_run(run_name=f'{run_name}_GDBoost' , experiment_id=experiment_id):
-    
-            # create and log model parameters
-            model_params = {
-                'n_estimators' : 350,
-                'learning_rate' : 1,
-                'max_depth' : 1,
-                'random_state' : 1
-            }
-
-            mlflow.log_params(model_params)
-
-            # initialize and train the model
-            gb_cls = GradientBoostingClassifier(**model_params , verbose=False)
-            gb_cls.fit(train_x , train_y)
-
-            # predictions using Gradient Boosting Classifier
-            gb_predictions = gb_cls.predict(test_x)
-            gb_perfomance = accuracy_score(test_y , gb_predictions)
-
-            # log performance
-            mlflow.log_metrics({'accuracy_score' : gb_perfomance})
-            
-            # log the model artifact if save model is enabled
-            if self.save_models:
-                if self.models_root_path != None:
-                    mlflow.sklearn.log_model(gb_cls , f'models/GBModels/{target_col}')
-                else:
-                    print("Model path not defined , model not saved!")
-
-        # Passive Aggressive Classifier
-        with mlflow.start_run(run_name=f'{run_name}_PassiveAggr' , experiment_id=experiment_id):
-
-            # create and log model parameters
-            model_params = {
-                'max_iter' : 100,
-                'random_state' : 42
-            }
-
-            mlflow.log_metrics(model_params)
-
-            # initialize and train the model
-            passive_aggressive_cls = PassiveAggressiveClassifier(**model_params)
-            passive_aggressive_cls.fit(train_x , train_y)
-
-            # predictions using Passive Aggressive Classifier
-            pass_aggr_predictions = passive_aggressive_cls.predict(test_x)
-            pass_aggr_performance = accuracy_score(test_y , pass_aggr_predictions)
-
-            #log performance
-            mlflow.log_metrics({'accuracy_score' : pass_aggr_performance})
-
-            # log the model artifact if save model is enabled
-            if self.save_models:
-                if self.models_root_path != None:
-                    mlflow.sklearn.log_model(passive_aggressive_cls , f'models/PassiveAggressiveModels/{target_col}')
-                else:
-                    print("Model path not defined , model not saved!")
-
-        # putting the classifier above into a list to train the ensemble classifiers
-        classifiers = [
-            ('Random Forrest' , random_forest_cls), 
-            # ('SVM' , svm_cls),
-            ('MLP' , mlp_cls),
-            ('Gradient Boosting' , gb_cls),
-            ('Passive Aggressive' , passive_aggressive_cls)
+        # define the models structure
+        model = tf.keras.Sequential(
+            [
+            tf.keras.layers.Input(shape=(len(self.predictors),)),
+            tf.keras.layers.Dense(units=128 , activation='relu'),
+            tf.keras.layers.Dense(units=128 , activation='relu'),
+            tf.keras.layers.Dense(units=64 , activation='relu'),
+            tf.keras.layers.Dense(units=32 , activation='relu'),
+            tf.keras.layers.Dense(units=len(self.target_list) , activation='softmax')
             ]
+        )   
 
-        # Votting Ensemble Classifier
-        with mlflow.start_run(run_name=f'{run_name}_votting'  , experiment_id=experiment_id):
-            # create and log model_parameters
-            model_params = {
-                'estimators' : classifiers
-            }
+        # define the models optimizer
+        optimizer = tf.keras.optimizers.Adam(
+            learning_rate=0.01,   
+            beta_1=0.9,             
+            beta_2=0.999,           
+            epsilon=1e-4            
+        )
 
-            mlflow.log_params(model_params)
+        # compile the model
+        model.compile(optimizer=optimizer , loss='categorical_crossentropy' , metrics=['accuracy'])
 
-            # initialize and train the model
-            votting_ensemble = VotingClassifier(**model_params , verbose=0)
-            votting_ensemble.fit(train_x , train_y)
+        # turn off autologging for mlflow
+        mlflow.tensorflow.autolog(disable=True)
 
-            # votting ensemble performance
-            votting_predictions = votting_ensemble.predict(test_x)
-            votting_performance = accuracy_score(test_y , votting_predictions)
+        # define an earlystopping callback
+        earlystop_callback = tf.keras.callbacks.EarlyStopping(
+            monitor='loss',
+            min_delta = 1e-5,
+            patience=5,
+            mode='auto',
+            verbose=1,
+            restore_best_weights=True
+        )
 
-            # log performance
-            mlflow.log_metrics({'accuracy_score' : votting_performance})
-            
+        # split the test data into validation and holdout sets
+        x_validation , x_holdout , y_validation , y_holdout = train_test_split(test_x , test_y , test_size=.5 , random_state=7)
+
+        # start the learning 
+        with mlflow.start_run(run_name='Neural_Net_Training' , experiment_id=experiment_id) as run:
+            history = model.fit(x=train_x , y=train_y , batch_size=128 , validation_data=(x_validation , y_validation) , callbacks=[earlystop_callback , MLflowCallback(run)] , epochs=100)
+
+            # test the model on the holdout set and log the performance
+            predictions = model.predict(x_holdout)
+
+            max_indices = np.argmax(predictions, axis=1)
+            one_hot_encodings = np.zeros_like(predictions)
+            one_hot_encodings[np.arange(predictions.shape[0]), max_indices] = 1
+
+            accuracy = accuracy_score(y_true=y_holdout , y_pred=one_hot_encodings)
+
+            mlflow.log_metrics({'accuracy_score' : accuracy} , run_id=run)
+
             # log the model artifact if save model is enabled
             if self.save_models:
                 if self.models_root_path != None:
-                    mlflow.sklearn.log_model(votting_ensemble , f'models/VottingEnsembelModels/{target_col}')
+                    mlflow.tensorflow.log_model(model , f'models/Neural_Net/')
                 else:
                     print("Model path not defined , model not saved!")
 
@@ -674,7 +571,7 @@ if __name__ == "__main__":
     # a set for holding improper leagues , i.e leagues with to little data
     bad_leagues = set()
 
-    target_params = ['home_win' , 'draw' , 'away_win' , 'home_double' , 'away_double']
+    target_params = ['home_win' , 'draw' , 'away_win']
     features = ['home_attack_strength', 'home_defence_strength', 'away_attack_strength',
            'away_defence_strength', 'home_expected_goal', 'away_expected_goal']
 
