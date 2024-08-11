@@ -268,7 +268,7 @@ class ModelManager:
 
             accuracy = accuracy_score(y_true=y_holdout , y_pred=one_hot_encodings)
 
-            mlflow.log_metrics({'accuracy_score' : accuracy} , run_id=run)
+            mlflow.log_metrics({'accuracy_score' : accuracy})
 
             # log the model artifact if save model is enabled
             if self.save_models:
