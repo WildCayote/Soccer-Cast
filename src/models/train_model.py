@@ -216,6 +216,18 @@ class ModelManager:
             - None
         '''
         
+        # check for gpus
+        print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+
+        # if gpus are available use them
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                # Restrict TensorFlow to only use the first GPU
+                tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
+            except RuntimeError as e:
+                print(e)
+
         # define the models structure
         model = tf.keras.Sequential(
             [
@@ -457,7 +469,7 @@ class ModelManager:
                 run_name=run_name,
                 target_name=self.target_col
             )
-            self.log_best_model(target=self.target_col)
+            # self.log_best_model(target=self.target_col)
         else:
             # train on multiple targets
             for target in self.target_list:
@@ -475,7 +487,7 @@ class ModelManager:
 
     def log_best_model(self , target : str):
         # find the best model
-        run_name = f'compiled_{target}_%'
+        run_name = 'Neural_Net_Training'
         runs = mlflow.search_runs(experiment_names=[self.experiment_name] , filter_string=f'''attributes.run_name LIKE "{run_name}" AND attributes.status = "FINISHED"''' , order_by=["metrics.accuracy_score DESC"])        
         best_run = runs.head(n=1)
 
