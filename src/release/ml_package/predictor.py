@@ -1,5 +1,6 @@
-import os, joblib
+import os
 import numpy as np
+import tensorflow as tf
 
 # ignore warnings
 import warnings
@@ -21,7 +22,7 @@ class Predictor:
         for model in models:
             model_path = os.path.join(self.models_folder , model)
             model_target = model.split('.')[0]
-            model_object = joblib.load(model_path)
+            model_object = tf.keras.models.load_model(model_path)
             self.models[model_target] = model_object
         print('--- Models loaded ---')
 
@@ -41,10 +42,16 @@ class Predictor:
         '''
         predictions = {}
         x = np.array([hm_att_str , hm_def_str , aw_att_str , aw_def_str , hm_exp , aw_exp]).reshape(1,-1)
-        for target in self.models:
-            model = self.models[target]
-            result = model.predict(x)
-            predictions[target] = result.item()
+        for model_name in self.models:
+            model = self.models[model_name]
+            result = model.predict(x)[0]
+            predictions = {
+                "home_win" : result[0],
+                "draw" : result[1],
+                "away_win" : result[2],
+                "home_double" : (result[0] + result[1]),
+                "away_double" : (result[2] + result[1])
+            }
 
         return predictions
 

@@ -1,13 +1,13 @@
 {
   "multiclass": {
     "metrics": {
-      "val_loss": 0.9901202321052551,
-      "validation_accuracy": 0.5255609154701233,
-      "loss": 0.9891952276229858,
-      "accuracy_score": 0.5283901135604543,
-      "val_accuracy": 0.5255609154701233,
-      "validation_loss": 0.9901202321052551,
-      "accuracy": 0.5258209109306335
+      "accuracy": 0.5259519219398499,
+      "validation_loss": 0.984804093837738,
+      "accuracy_score": 0.5283115250108059,
+      "loss": 0.9871471524238586,
+      "val_loss": 0.984804093837738,
+      "val_accuracy": 0.5270541310310364,
+      "validation_accuracy": 0.5270541310310364
     },
     "model_type": "Nural Net"
   }

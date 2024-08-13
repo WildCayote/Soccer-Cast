@@ -1,4 +1,4 @@
-import os , shutil , argparse , joblib
+import os , shutil , argparse
 
 MODELS_PATH = "./src/release/ml_package/models"
 PACKAGE_DIRECTORY = "./src/release/ml_package"
@@ -24,12 +24,10 @@ def create_release(models_path : str):
     models = os.listdir(path=models_path)
     for model in models:
         model_path = os.path.join(models_path , model)
-        # read the model
-        loaded_model = joblib.load(model_path)
-
-        # paste it to the new directory
+        print(model_path)
+        # copy the model to the new directory
         new_path = os.path.join(MODELS_PATH , model )
-        joblib.dump(loaded_model , new_path)
+        shutil.copy(model_path , new_path)
     
     print('-- Models copied to package --')
 

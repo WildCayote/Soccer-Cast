@@ -1,5 +1,5 @@
 import pandas as pd
-import chardet , os , argparse , json , pickle , joblib
+import chardet , os , argparse , json , shutil
 from typing import List
 
 import numpy as np
@@ -502,19 +502,14 @@ class ModelManager:
         relative_path = artifact_uri.split(uri_folder_name)[1]
         relative_folder_path = f"./{uri_folder_name}{relative_path}/models/nn_net/data"
 
-        # model name
+        # model name and path
         name = 'model.h5'
         model_path = os.path.join(relative_folder_path , name)
-        # complete_model_folder_path = os.path.join(relative_folder_path , name)
-        # target = os.listdir(complete_model_folder_path)[0]
-        # model_path = os.path.join(complete_model_folder_path , target , 'model.pkl')
 
-        # copy the model
-        loaded_model = tf.keras.models.load_model(model_path)
         
         if 'objects' not in os.listdir('./models/'):
             os.mkdir('./models/objects')
-        joblib.dump(loaded_model , filename=f'./models/objects/{target}.joblib' , compress=3)
+        shutil.copy(model_path ,f'./models/objects/{target}.h5')
 
         # get model type
         run_name = best_run['tags.mlflow.runName'][0]   
