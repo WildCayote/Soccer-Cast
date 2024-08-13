@@ -12,6 +12,7 @@ import tensorflow as tf
 
 import mlflow
 from mlflow.tensorflow import MLflowCallback
+from mlflow.tensorflow import log_model
 
 
 # ignore warnings
@@ -133,7 +134,7 @@ class ModelManager:
             dropped_df = dropped_df.drop(columns=remove_columns)
         else:
             keep_columns = self.predictors
-            remove_columns = [column for column in dropped_df.columns if column not in keep_columns and column != target_col ]
+            remove_columns = [column for column in dropped_df.columns if column not in keep_columns and column not in self.target_list ]
 
             dropped_df = dropped_df.drop(columns=remove_columns)
 
@@ -172,19 +173,20 @@ class ModelManager:
                 y = df[target_col]
                 
                 print(f'Splitting data done.')
-                return train_test_split(X , y , test_size=0.2 , random_state=100)
+                return train_test_split(X , y , test_size=0.2 , random_state=7)
 
             else:
-                predictor_cols.remove(target_col)
+                for col in self.target_list:
+                    predictor_cols.remove(col)
 
 
                 # predictors
-                X = df.drop(columns=target_col)
+                X = df.drop(columns=self.target_list)
                 
                 # target
-                y = df[target_col]
+                y = df.drop(columns=predictor_cols)
                 print(f'Splitting data done.')
-                return train_test_split(X , y , test_size=0.1 , random_state=100)
+                return train_test_split(X , y , test_size=0.1 , random_state=7)
 
         except Exception as e:
                print(e)
@@ -285,7 +287,7 @@ class ModelManager:
             # log the model artifact if save model is enabled
             if self.save_models:
                 if self.models_root_path != None:
-                    mlflow.tensorflow.log_model(model , f'models/Neural_Net/')
+                    log_model(model , 'models/nn_net' , keras_model_kwargs={"save_format": "h5"})
                 else:
                     print("Model path not defined , model not saved!")
 
@@ -318,23 +320,29 @@ class ModelManager:
 
             # check if there are enough samples to teach the model
             if X_train.shape[0] >= 100:
-
-                # train and log the models
-                self.train_models(
-                    train_x=X_train,
-                    train_y=y_train,
-                    test_x=X_test,
-                    test_y=y_test,
-                    experiment_id=experiment_id,
-                    run_name=run_name,
-                    target_col=target_name
-                )
-
-                # find the best model and log it
-                self.log_best_model(target=target_name)
+                # check if there are multiple tragets passed instead of one
+                if target_name == None:
+                    self.train_models(
+                        train_x=X_train,
+                        train_y=y_train,
+                        test_x=X_test,
+                        test_y=y_test,
+                        experiment_id=experiment_id,
+                        run_name=run_name,
+                    )
+                else:
+                    # train and log the models
+                    self.train_models(
+                        train_x=X_train,
+                        train_y=y_train,
+                        test_x=X_test,
+                        test_y=y_test,
+                        experiment_id=experiment_id,
+                        run_name=run_name,
+                        target_col=target_name
+                    )
 
             else:
-
                 print(f'Skipped league {league_id} becuase it has low games')
                 self.skipped.add(league_id)
 
@@ -469,20 +477,15 @@ class ModelManager:
                 run_name=run_name,
                 target_name=self.target_col
             )
-            # self.log_best_model(target=self.target_col)
+            self.log_best_model(target=self.target_col)
         else:
             # train on multiple targets
-            for target in self.target_list:
-                run_name = f'compiled_{target}'
-                self.pipe(
+            self.pipe(
                     data=df,
                     experiment_id=experiment_id,
                     run_name=run_name,
-                    target_name=target 
                 )
-                self.log_best_model(target=target)
-                print(f'--- Training on {target} finished ---')
-
+            self.log_best_model(target='multiclass')
         print('---Training Ended---')
 
     def log_best_model(self , target : str):
@@ -497,17 +500,17 @@ class ModelManager:
         # relative path
         uri_folder_name = self.tracking_uri
         relative_path = artifact_uri.split(uri_folder_name)[1]
-        relative_folder_path = f"./{uri_folder_name}{relative_path}/models"
+        relative_folder_path = f"./{uri_folder_name}{relative_path}/models/nn_net/data"
 
         # model name
-        name = os.listdir(relative_folder_path)[0]
-        complete_model_folder_path = os.path.join(relative_folder_path , name)
-        target = os.listdir(complete_model_folder_path)[0]
-        model_path = os.path.join(complete_model_folder_path , target , 'model.pkl')
+        name = 'model.h5'
+        model_path = os.path.join(relative_folder_path , name)
+        # complete_model_folder_path = os.path.join(relative_folder_path , name)
+        # target = os.listdir(complete_model_folder_path)[0]
+        # model_path = os.path.join(complete_model_folder_path , target , 'model.pkl')
 
         # copy the model
-        with open(model_path , 'rb') as model_pkl:
-            loaded_model = pickle.load(model_pkl)
+        loaded_model = tf.keras.models.load_model(model_path)
         
         if 'objects' not in os.listdir('./models/'):
             os.mkdir('./models/objects')
@@ -515,7 +518,7 @@ class ModelManager:
 
         # get model type
         run_name = best_run['tags.mlflow.runName'][0]   
-        model_type = run_name.split('_')[-1]
+        model_type = 'Nural Net'
 
 
         # save the metric and params
