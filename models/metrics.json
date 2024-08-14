@@ -1,24 +1,14 @@
 {
-  "away_double": {
+  "multiclass": {
     "metrics": {
-      "accuracy_score": 0.6310464065385674
+      "accuracy": 0.5259519219398499,
+      "validation_loss": 0.984804093837738,
+      "accuracy_score": 0.5283115250108059,
+      "loss": 0.9871471524238586,
+      "val_loss": 0.984804093837738,
+      "val_accuracy": 0.5270541310310364,
+      "validation_accuracy": 0.5270541310310364
     },
-    "model_type": "GDBoost"
-  },
-  "away_win": {
-    "metrics": { "accuracy_score": 0.7146253290895517 },
-    "model_type": "GDBoost"
-  },
-  "draw": {
-    "metrics": { "accuracy_score": 0.7758261621281779 },
-    "model_type": "votting"
-  },
-  "home_double": {
-    "metrics": { "accuracy_score": 0.7146253290895517 },
-    "model_type": "GDBoost"
-  },
-  "home_win": {
-    "metrics": { "accuracy_score": 0.6310464065385674 },
-    "model_type": "GDBoost"
+    "model_type": "Nural Net"
   }
 }
