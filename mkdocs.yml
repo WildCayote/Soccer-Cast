@@ -1,3 +1,11 @@
 site_name: Soccer-Cast Docs
+repo_url: https://github.com/WildCayote/Soccer-Cast
 theme:
   name: material
+  language: en
+  icon:
+    - repo: fontawesome/brands/git-alt
+  features:
+    - navigation.instant
+    - navigation.top
+    - navigation.expand
