@@ -13,3 +13,4 @@ dvc
 dvc_gdrive
 joblib
 tensorflow>=2.10.1
+mkdocs
