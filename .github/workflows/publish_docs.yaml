@@ -1,0 +1,29 @@
+name: publish_documentation
+on:
+  push:
+    paths:
+      - "mkdocs.yml"
+      - "docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: [windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+      - run: |
+          pip install mkdocs
+          pip install mkdocs-material
+      - run: |
+          mkdocs gh-deploy --force
