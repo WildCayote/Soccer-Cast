@@ -1,7 +1,6 @@
 name: natty
 on:
-  release:
-    types: [created]
+  push:
   workflow_dispatch:
 
 jobs:
