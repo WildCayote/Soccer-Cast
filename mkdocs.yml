@@ -22,3 +22,11 @@ theme:
         name: Switch to light mode
       primary: teal
       accent: lime
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Project Structure: project_structure.md
+  - Project Workflow: project_workflow.md
+  - CI/CD : ci_cd.md
+  

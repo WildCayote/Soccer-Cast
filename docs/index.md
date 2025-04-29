@@ -1,13 +1,13 @@
-# Welcome to MkDocs
+# Welcome to Soccer-Case Docs
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+This documentation is intended for the Soccer-Cast project which is an opensource MLOps project
 
 ## Commands
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+- `mkdocs new [dir-name]` - Create a new project.
+- `mkdocs serve` - Start the live-reloading docs server.
+- `mkdocs build` - Build the documentation site.
+- `mkdocs -h` - Print help message and exit.
 
 ## Project layout
 
